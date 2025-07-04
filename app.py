@@ -1,4 +1,3 @@
-
 import streamlit as st
 import joblib
 
@@ -6,51 +5,59 @@ import joblib
 model = joblib.load("emotion_model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
 
-# Tamil songs with YouTube links
-emotion_to_songs = {
-    'joy': [
-        ('Malargaley Malargaley - Love Birds', 'https://www.youtube.com/watch?v=d3fsB6CKEzo'),
-        ('Pudhu Vellai Mazhai - Roja', 'https://www.youtube.com/watch?v=owI7DOeO7eY')
+# Tamil emotion → YouTube embed URLs (2 per emotion)
+emotion_videos = {
+    "joy": [
+        "https://www.youtube.com/embed/MjtpM8L_3qE",  # Malargaley Malargaley
+        "https://www.youtube.com/embed/HnU6a6bwKZc",  # Pudhu Vellai Mazhai
     ],
-    'sadness': [
-        ('Mannipaaya - Vinnaithaandi Varuvaaya', 'https://www.youtube.com/watch?v=93KT1FG3lNg'),
-        ('Kannave Kannave - David', 'https://www.youtube.com/watch?v=Kk8fS-x9L84')
+    "sadness": [
+        "https://www.youtube.com/embed/X31O_dkEdeE",  # Mannipaya
+        "https://www.youtube.com/embed/l4ZrsBLv-Pc",  # Kannave Kannave
     ],
-    'anger': [
-        ('Ding Dong - Jigarthanda', 'https://www.youtube.com/watch?v=tJYOEPJfd9Y'),
-        ('Hey Mama - Sethupathi', 'https://www.youtube.com/watch?v=2gfGgTLQWZc')
+    "anger": [
+        "https://www.youtube.com/embed/NV4rK9TjE64",  # Ding Dong
+        "https://www.youtube.com/embed/kwMNRA-BpRg",  # Hey Mama
     ],
-    'fear': [
-        ('Celebration of Love - Aayirathil Oruvan', 'https://www.youtube.com/watch?v=ck7tLIXQ2Vw'),
-        ('Kaththi Theme - Kaththi', 'https://www.youtube.com/watch?v=ClCOvT_o1nE')
+    "fear": [
+        "https://www.youtube.com/embed/RQxkCI74ySA",  # Celebration of Love
+        "https://www.youtube.com/embed/bnE7TPZ0aN8",  # Kaththi Theme
     ],
-    'love': [
-        ('Munbe Vaa - Sillunu Oru Kadhal', 'https://www.youtube.com/watch?v=cA7FX9TtJxA'),
-        ('Vaseegara - Minnale', 'https://www.youtube.com/watch?v=Z_M1uEwlsU4')
+    "love": [
+        "https://www.youtube.com/embed/UVXKFlV3Z8E",  # Munbe Vaa
+        "https://www.youtube.com/embed/v5sQ0V1NN7Y",  # Vaseegara
     ],
-    'surprise': [
-        ('Idhazhin Oram - 3', 'https://www.youtube.com/watch?v=etVdpQKQZQo'),
-        ('Enna Solla Pogirai - Kandukondain Kandukondain', 'https://www.youtube.com/watch?v=t6QSk0Z5opg')
-    ]
+    "surprise": [
+        "https://www.youtube.com/embed/7ppEazL9FNs",  # Idhazhin Oram
+        "https://www.youtube.com/embed/1yuc4BI5NWU",  # Enna Solla Pogirai
+    ],
 }
 
-# Streamlit UI
-st.set_page_config(page_title="Tamil Mood Music Recommender", page_icon="🎧")
-st.title("🎧 Tamil Mood-Based Music Recommender")
+# UI
+st.set_page_config(page_title="MoodTune 🎶", page_icon="🎧")
+st.title("🎧 MoodTune - Tamil Emotion-Based Song Recommender")
+st.markdown("Tell us how you feel, and we'll match your mood with two beautiful Tamil songs!")
 
-st.write("Enter how you're feeling in English (e.g., 'I’m so happy today', 'I feel low', etc.):")
-user_input = st.text_area("Describe your emotion:")
+# Input
+user_input = st.text_area("💬 How are you feeling?", "")
 
-if st.button("Get Song Recommendation"):
+if st.button("🎵 Detect Emotion & Show Songs"):
     if user_input.strip() == "":
-        st.warning("Please enter some text describing your mood.")
+        st.warning("Please enter a sentence to detect your mood.")
     else:
-        vectorized_input = vectorizer.transform([user_input])
-        predicted_emotion = model.predict(vectorized_input)[0]
+        # Predict emotion
+        vec = vectorizer.transform([user_input])
+        emotion = model.predict(vec)[0]
 
-        st.success(f"🔮 Detected Emotion: **{predicted_emotion.upper()}**")
-        st.write("🎶 Recommended Tamil Songs:")
+        st.success(f"🧠 Detected Emotion: **{emotion.upper()}**")
 
-        for song_title, youtube_link in emotion_to_songs.get(predicted_emotion, []):
-            st.subheader(song_title)
-            st.video(youtube_link)
+        # Get songs
+        video_links = emotion_videos.get(emotion)
+        if video_links:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.video(video_links[0])
+            with col2:
+                st.video(video_links[1])
+        else:
+            st.info("No songs found for this mood.")
