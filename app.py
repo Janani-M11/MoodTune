@@ -1,54 +1,57 @@
 import streamlit as st
 import joblib
 
-# Load model & vectorizer
+# Load trained model and vectorizer
 model = joblib.load("emotion_model.pkl")
 vectorizer = joblib.load("vectorizer.pkl")
 
-# Emotion → song title and YouTube URL
+# ✅ Final Song Mapping with Search-Only Strategy
 songs = {
     "joy": [
-        ("Pudhu Vellai Mazhai – Roja", "https://www.youtube.com/watch?v=HnU6a6bwKZc"),
-        ("Anbil Avan – VTV", "https://www.youtube.com/watch?v=8A5oWvFYiyY")
+        ("Pudhu Vellai Mazhai – Roja", "Pudhu Vellai Mazhai Roja Tamil song"),
+        ("Anbil Avan – Vinnaithaandi Varuvaayaa", "Anbil Avan VTV Tamil song")
     ],
     "sadness": [
-        ("Kanave Kanave – David", "https://www.youtube.com/watch?v=MofM9B2NZp4"),
-        ("Unakkenna Venum Sollu", "https://www.youtube.com/watch?v=9Lqe5U9rNZ4")
+        ("Kanave Kanave – David", "Kanave Kanave David Tamil song"),
+        ("Kadhal Oru Aagayam – Imaikkaa Nodigal", "Kadhal Oru Aagayam Imaikkaa Nodigal Tamil song")
     ],
     "anger": [
-        ("Kaththi Theme", "https://www.youtube.com/watch?v=bnE7TPZ0aN8"),
-        ("Aaluma Doluma – Vedalam", "https://www.youtube.com/watch?v=cQwN8K1Av0U")
+        ("Kaththi Theme – Kaththi", "Kaththi theme Tamil song"),
+        ("Hey Mama – Sethupathi", "Hey Mama Sethupathi Tamil song")
     ],
     "fear": [
-        ("Yennai Arindhaal BGM", "https://www.youtube.com/watch?v=KNkULxImYwA"),
-        ("Whistle Theme – Bigil", "https://www.youtube.com/watch?v=gKl1BEzlhFY")
+        ("Celebration of Life – Aayirathil Oruvan", "Celebration of Life Aayirathil Oruvan Tamil song"),
+        ("Whistle Theme – Bigil", "Whistle Theme Bigil Tamil song")
     ],
     "love": [
-        ("Munbe Vaa", "https://www.youtube.com/watch?v=UVXKFlV3Z8E"),
-        ("Vaseegara", "https://www.youtube.com/watch?v=G-Q4uWCHG2k")
+        ("Munbe Vaa – Sillunu Oru Kadhal", "Munbe Vaa Tamil song"),
+        ("Vaseegara – Minnale", "Vaseegara Tamil song")
     ],
     "surprise": [
-        ("Kannalanae", "https://www.youtube.com/watch?v=Ot1kPMt1RM4"),
-        ("Enna Solla Pogirai", "https://www.youtube.com/watch?v=1yuc4BI5NWU")
+        ("Kannalanae – Bombay", "Kannalanae Bombay Tamil song"),
+        ("Enna Solla Pogirai – Kandukondain Kandukondain", "Enna Solla Pogirai Tamil song")
     ]
 }
 
+# Streamlit UI setup
+st.set_page_config(page_title="MoodTune 🎧", page_icon="🎵")
 st.title("🎧 MoodTune – Tamil Song Recommender")
+st.markdown("Tell me how you're feeling and get 2 Tamil songs that match your emotion 🎶")
 
-user_input = st.text_area("How are you feeling?", "")
-if st.button("Get Songs"):
+# Text input from user
+user_input = st.text_area("💬 Describe your mood in one sentence:", "")
+
+if st.button("🎵 Detect Emotion & Recommend Songs"):
     if not user_input.strip():
-        st.warning("Please type your mood above.")
+        st.warning("Please type how you're feeling.")
     else:
-        emotion = model.predict(vectorizer.transform([user_input]))[0]
-        st.success(f"Detected mood: **{emotion}** 🎶")
+        # Predict emotion
+        vector = vectorizer.transform([user_input])
+        emotion = model.predict(vector)[0]
+        st.success(f"🧠 Detected Emotion: **{emotion.upper()}**")
 
-        for title, url in songs.get(emotion, []):
-            st.markdown(f"### {title}")
-            try:
-                vid_id = url.split("v=")[-1]
-                embed_url = f"https://www.youtube.com/embed/{vid_id}"
-                st.video(embed_url)
-            except:
-                pass
-            st.markdown(f"[▶️ Watch on YouTube]({url})")
+        # Display recommended songs as clickable YouTube search links
+        st.markdown("### 🎶 Recommended Tamil Songs:")
+        for title, query in songs.get(emotion, []):
+            search_url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
+            st.markdown(f"- 🔗 [{title}]({search_url})")
